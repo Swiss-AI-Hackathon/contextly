@@ -1,7 +1,8 @@
 import json
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from .hf_client import call_hf
+from app.hf import call_hf
+from pathlib import Path
 
 app = FastAPI()
 
@@ -54,23 +55,39 @@ def list_transcripts():
 # Endpoint to get a specific transcript by filename from the data directory
 @app.get("/get_transcript/{filename}")
 def get_transcript(filename: str):
-    import os
-    data_dir = os.path.join(os.path.dirname(__file__), '../data/train')
-    file_path = os.path.join(data_dir, filename)
     try:
-        with open(file_path, 'r') as file:
-            content = file.read()
-        return {"transcript": content}
+        # 1) sanitize filename
+        safe_name = Path(filename).name
+        data_dir = (Path(__file__).resolve().parent / ".." / "data" / "train").resolve()
+        file_path = (data_dir / safe_name).resolve()
+
+        if data_dir not in file_path.parents:
+            raise HTTPException(status_code=400, detail="Invalid filename.")
+        if file_path.suffix.lower() != ".txt":
+            raise HTTPException(status_code=400, detail="Only .txt files are allowed.")
+
+        # 2) read as bytes, then decode
+        raw = file_path.read_bytes()
+
+        # try UTF-8 (with BOM support), then sensible fallbacks
+        try:
+            text = raw.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            for enc in ("cp1252", "latin-1"):
+                try:
+                    text = raw.decode(enc)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            else:
+                # couldn't decode with any known encodings
+                raise
+
+        return {"transcript": text}
+
     except FileNotFoundError:
-        raise HTTPException(
-            status_code=404,
-            detail="Transcript not found."
-        )
+        raise HTTPException(status_code=404, detail="Transcript not found.")
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=415, detail="Unsupported file encoding.")
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
-
-
-    
+        raise HTTPException(status_code=500, detail=str(e))
