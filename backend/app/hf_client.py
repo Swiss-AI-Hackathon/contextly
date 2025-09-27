@@ -1,0 +1,29 @@
+import os
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+
+HF_TOKEN = os.getenv("HF_TOKEN")
+HF_URL = "https://router.huggingface.co/v1/chat/completions"
+
+SYSTEM_PROMPT = "You are helping an UBS client advisor to analyze the script of their conversation with a client.\nYour purpose is to extract one of the following actions for the advisors, that are identified by \nthese 8 labels: 'plan_contact','update_contact_info_non_postal',\n'update_contact_info_postal_address','update_kyc_activity','update_kyc_origin_of_assets',\n'update_kyc_purpose_of_businessrelation','update_kyc_total_assets'. \nYou need to return just a JSON object with text in English. \nExample outputs for all label types are below. You must stick to corresponding JSON structures for each label type.\n\nFor plan_contact:\n{\n  'assigned_tasks': [\n    {\n      'task_id': 'ae7a377a-d4f3-4a79-9041-7f59aa8ca6f8',\n      'task_type': 'plan_contact',\n      'task_name': 'Plan Contact',\n      'min_turns': 2,\n      'max_turns': 4,\n      'parameters': {\n        'contact_date': '2025-09-17',\n        'contact_note': 'Liquidity event planning \u2013 discuss deployment of funds after a major asset sale or dividend payout.',\n        'channel': 'Client office',\n        'duration_minutes': 90\n      }\n    }\n  ],\n  'topic_and_outcome': {\n    'topic': 'Problem with card: blocked',\n    'outcome': 'Card was successfully unblocked after security verification.'\n  }\n}\n\nFor update_contact_info_non_postal:\n{\n  'assigned_tasks': [\n    {\n      'task_id': '6aeaecaf-cdf3-44f3-8d15-e5424bd92638',\n      'task_type': 'update_contact_info_non_postal',\n      'task_name': 'Update Contact Info: Non-Postal',\n      'min_turns': 2,\n      'max_turns': 3,\n      'parameters': {\n        'address_class': 'E',\n        'delivery_validity': 'blocked for legal information',\n        'address_content': '+41000000000',\n        'comment': 'Client prefers email communication.'\n      }\n    }\n  ],\n  'topic_and_outcome': {\n    'topic': 'Account overdraft',\n    'outcome': 'Client was informed about the overdraft amount, duration, and associated fees.'\n  }\n}\n\nFor update_contact_info_postal_address:\n{\n  'assigned_tasks': [\n    {\n      'task_id': '439566b7-cfd4-46bf-8a14-49487a95dbd2',\n      'task_type': 'update_contact_info_postal_address',\n      'task_name': 'Update Contact Info: Postal Address',\n      'min_turns': 1,\n      'max_turns': 3,\n      'parameters': {\n        'country': 'Country 3',\n        'postal_city_name': 'City Gamma',\n        'postal_region_name': 'Region 1',\n        'postal_code': 4764,\n        'residence_id': '65'\n      }\n    }\n  ],\n  'topic_and_outcome': {\n    'topic': 'Problem with card: limit reached',\n    'outcome': 'Client was informed that the limit cannot be increased at this time due to internal policies.'\n  }\n}\n\nFor update_kyc_activity:\n{\n  'assigned_tasks': [\n    {\n      'task_id': '19895091-5353-42a7-9b18-3dccd3532551',\n      'task_type': 'update_kyc_activity',\n      'task_name': 'Update KYC: Activity',\n      'min_turns': 1,\n      'max_turns': 3,\n      'parameters': {\n        'job_status': 'Unemployed',\n        'function': 'Manager',\n        'employer': 'Company 1',\n        'sector': 'Finance'\n      }\n    }\n  ],\n  'topic_and_outcome': {\n    'topic': 'Account overdraft',\n    'outcome': 'Client was informed about the overdraft amount, duration, and associated fees.'\n  }\n}\n\nFor update_kyc_origin_of_assets:\n{\n  'assigned_tasks': [\n    {\n      'task_id': '2bac3740-4436-40d2-acf1-9945e3e1e223',\n      'task_type': 'update_kyc_origin_of_assets',\n      'task_name': 'Update KYC: Origin of Assets',\n      'min_turns': 2,\n      'max_turns': 5,\n      'parameters': {\n        'origin': 'Investment',\n        'details': 'Client inherited a large sum of money.',\n        'corroboration_or_evidence': [\n          'https://example.com/doc/7319'\n        ]\n      }\n    }\n  ],\n  'topic_and_outcome': {\n    'topic': 'Problem with Digital Banking: login issue',\n    'outcome': 'A technical support ticket was created as the issue could not be resolved immediately.'\n  }\n}\n\nFor update_kyc_purpose_of_businessrelation:\n[\n  {\n    'task_type': 'update_kyc_purpose_of_businessrelation',\n    'parameters': {\n      'purpose_category': 'investing & securities trading',\n      'details': 'Client wants to invest for retirement.'\n    }\n  },\n  {\n    'task_type': 'update_contact_info_postal_address'\n  },\n  {\n    'task_type': 'schedule_meeting',\n    'parameters': {\n      'date': '2025-09-09',\n      'time': '14:00'\n    }\n  }\n]\n\nFor update_kyc_total_assets:\n{\n  'assigned_tasks': [\n    {\n      'task_id': '2f59f49f-e9df-40e3-9fcc-5eb9a5320f11',\n      'task_type': 'update_kyc_total_assets',\n      'task_name': 'Update KYC: Total Assets',\n      'min_turns': 2,\n      'max_turns': 5,\n      'parameters': {\n        'total_assets': 1613600,\n        'currency': 'CUR3',\n        'total_real_estate_assets': 3120979,\n        'total_liquid_assets': 371253,\n        'total_other_assets': 577829,\n        'remarks': 'Assets are diversified.'\n      }\n    }\n  ],\n  'topic_and_outcome': {\n    'topic': 'Problem with card: unrecognized charge',\n    'outcome': 'The charge was explained to the client and confirmed to be legitimate.'\n  }\n}\n\nReturn valid JSON only, no other text."
+
+def call_hf(transcript: str):
+    headers = {
+        "Authorization": f"Bearer {HF_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": transcript}
+        ],
+        "model": "swiss-ai/Apertus-8B-Instruct-2509:publicai",
+        "stream": False
+    }
+
+    resp = requests.post(HF_URL, headers=headers, json=payload)
+    resp.raise_for_status()
+    return resp.json()
