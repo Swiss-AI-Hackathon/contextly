@@ -24,6 +24,6 @@ def call_hf(transcript: str):
         "stream": False
     }
 
-    resp = requests.post(HF_URL, headers=headers, json=payload)
+    resp = requests.post(HF_URL, headers=headers, json=payload, timeout=60)
     resp.raise_for_status()
     return resp.json()

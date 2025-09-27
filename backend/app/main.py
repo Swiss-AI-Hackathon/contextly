@@ -22,6 +22,18 @@ def extract_labels(data: TranscriptInput):
             detail="Unexpected structure in model response."
         )
 
+    # Remove any text before the first '{' and after the last '}'
+    start_index = json_string.find('{')
+    end_index = json_string.rfind('}') + 1
+    if start_index == -1 or end_index == -1:
+        raise HTTPException(
+            status_code=500,
+            detail="Model content does not contain valid JSON."
+        )
+    # Log the text that was removed for debugging
+    
+    json_string = json_string[start_index:end_index]
+
     try:
         final_result = json.loads(json_string)
     except json.JSONDecodeError:
