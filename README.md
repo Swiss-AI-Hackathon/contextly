@@ -1,8 +1,10 @@
 # Contextly 
+Contextly.ai turns talk into action — bridging human conversations with intelligent automation.
+
 Contextly.ai transforms client–advisor conversations into actionable tasks using AI. It provides a React + Vite frontend and a FastAPI backend that connects to Hugging Face’s Apertus 8B Instruct model.
 
-#🚀 Features
-##Frontend (React + Vite)
+# 🚀 Features
+## Frontend (React + Vite)
 
 1. Upload or select transcript samples
 2. View raw and cleaned transcripts with highlighted evidence
@@ -16,16 +18,17 @@ Contextly.ai transforms client–advisor conversations into actionable tasks usi
 
 Swagger UI available at http://127.0.0.1:8000/docs
 
-##AI Model
+## AI Model
 
 Apertus 8B Instruct 2509 via Hugging Face Router API
 Optimized for high recall in compliance-sensitive banking tasks
 
-##Coming soon...
-1. Extracts 8 canonical task types with evidence spans, highlight task within transcript
-2. Send Feeback to the Model 
+## Coming soon...
+1. Extracts 8 canonical task types with evidence spans, highlight text where tasks are extracted from within transcript
+2. Send Feeback to the Model
+3. Improve chatbox 
 
-#⚙️ Backend Setup (FastAPI)
+# ⚙️ Backend Setup (FastAPI)
 1. Clone & enter backend
 cd backend
 
@@ -49,7 +52,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 5. Test backend & API Documentation
 Open http://127.0.0.1:8000/docs to try endpoints directly.
 
-##🎨 Frontend Setup (React + Vite)
+## 🎨 Frontend Setup (React + Vite)
 1. Clone & enter frontend
 cd frontend
 
@@ -64,29 +67,22 @@ Runs at http://localhost:5173.
 Frontend will call /extract_labels → backend → Hugging Face model.
 
 
-##🌐 API Endpoints
+## 🌐 API Endpoints
 POST /extract_labels → classify transcript
 
 GET /list_transcripts → list all available .txt
 
 GET /get_transcript/{filename} → get transcript text
 
-##🔒 Environment Variables
+## 🔒 Environment Variables
 Backend requires Hugging Face API token:
 HF_TOKEN=your_hf_token_here
 
 Put this in backend/.env.
 
-##📊 Tech Stack
+## 📊 Tech Stack
 Frontend: React, Vite, TypeScript, CSS
 Backend: Python, FastAPI, Uvicorn
 AI Model: Hugging Face Apertus 8B Instruct
 Deployment: Azure 
-
-
-
-⚡ Contextly.ai turns talk into action — bridging human conversations with intelligent automation.
-
-👉 Do you want me to also prepare shorter README files inside /frontend and /backend (with only setup instructions), while keeping this as the global README? That would make onboarding very clear.
-
 
